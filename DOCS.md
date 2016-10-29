@@ -22,6 +22,7 @@ The following parameters are used to configure this plugin:
 * `secrets` - variables to use in `secret_template`
 * `pre` - commands to run before applying the Kubernetes files
 * `post` - commands to run after applying the Kubernetes files
+* `show` - resources to `kubectl get` after applying the Kubernetes files
 
 Optional (useful for debugging):
 
@@ -75,10 +76,11 @@ deploy:
     secrets:
       github_token: $$GITHUB_TOKEN
 
+    show: pods
     pre:
-      - kubectl get pods
+      - kubectl version
     post:
-      - kubectl get pods
+      - kubectl top pod
 
     when:
       event: push

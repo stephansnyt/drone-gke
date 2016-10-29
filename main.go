@@ -28,6 +28,7 @@ type GKE struct {
 	Secrets        map[string]interface{} `json:"secrets"`
 	Pre            []string               `json:"pre"`
 	Post           []string               `json:"post"`
+	Show           string                 `json:"show"`
 }
 
 var (
@@ -253,6 +254,15 @@ func wrapMain() error {
 	err = runner.Run(vargs.KubectlCmd, "apply", "--filename", strings.Join(pathArg, ","))
 	if err != nil {
 		return fmt.Errorf("Error: %s\n", err)
+	}
+
+	// Show
+	resources := strings.Split(vargs.Show, ",")
+	for _, v := range resources {
+		err = runner.Run(vargs.KubectlCmd, "get", v)
+		if err != nil {
+			return fmt.Errorf("Error: %s\n", err)
+		}
 	}
 
 	// Post
