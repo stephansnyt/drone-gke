@@ -44,6 +44,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: %s
+  labels:
+    source: drone-gke
 `
 
 func main() {
