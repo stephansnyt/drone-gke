@@ -13,45 +13,9 @@ import (
 	"github.com/urfave/cli"
 )
 
-type GKE struct {
-	DryRun         bool                   `json:"dry_run"`
-	Verbose        bool                   `json:"verbose"`
-	Token          string                 `json:"token"`
-	GCloudCmd      string                 `json:"gcloud_cmd"`
-	KubectlCmd     string                 `json:"kubectl_cmd"`
-	Project        string                 `json:"project"`
-	Zone           string                 `json:"zone"`
-	Cluster        string                 `json:"cluster"`
-	Namespace      string                 `json:"namespace"`
-	Template       string                 `json:"template"`
-	SecretTemplate string                 `json:"secret_template"`
-	Vars           map[string]interface{} `json:"vars"`
-	Secrets        map[string]string      `json:"secrets"`
-
-	// SecretsBase64 holds secret values which are already base64 encoded and
-	// thus don't need to be re-encoded as they would be if they were in
-	// the Secrets field.
-	SecretsBase64 map[string]string `json:"secrets_base64"`
-}
-
-type BUILD struct {
-	Number string
-	Commit string
-	Branch string
-	Tag    string
-}
-
 var (
 	rev string
 )
-
-var nsTemplate = `
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: %s
-`
 
 func main() {
 	err := wrapMain()
@@ -66,22 +30,22 @@ func wrapMain() error {
 		rev = "[unknown]"
 	}
 
-	fmt.Printf("Drone GKE Plugin built from %s\n", rev)
+	fmt.Printf("Drone GDM Plugin built from %s\n", rev)
 
 	app := cli.NewApp()
-	app.Name = "gke plugin"
-	app.Usage = "gke plugin"
+	app.Name = "gdm plugin"
+	app.Usage = "gdm plugin"
 	app.Action = run
 	app.Version = fmt.Sprintf("1.0.0-%s", rev)
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:   "dry-run",
-			Usage:  "do not apply the Kubernetes templates",
-			EnvVar: "PLUGIN_DRY_RUN",
+			Name:   "preview",
+			Usage:  "run gdm in preview mode",
+			EnvVar: "PLUGIN_PREVIEW",
 		},
 		cli.BoolFlag{
 			Name:   "verbose",
-			Usage:  "dry run disables docker push",
+			Usage:  "verbose output including interpolated templates",
 			EnvVar: "PLUGIN_VERBOSE",
 		},
 		cli.StringFlag{
@@ -95,56 +59,25 @@ func wrapMain() error {
 			EnvVar: "PLUGIN_GCLOUD_CMD",
 		},
 		cli.StringFlag{
-			Name:   "kubectl-cmd",
-			Usage:  "alternative kubectl cmd",
-			EnvVar: "PLUGIN_KUBECTL_CMD",
-		},
-		cli.StringFlag{
 			Name:   "project",
 			Usage:  "gcp project",
 			EnvVar: "PLUGIN_PROJECT",
 		},
 		cli.StringFlag{
-			Name:   "zone",
-			Usage:  "zone of the container cluster",
-			EnvVar: "PLUGIN_ZONE",
-		},
-		cli.StringFlag{
-			Name:   "cluster",
-			Usage:  "name of the container cluster",
-			EnvVar: "PLUGIN_CLUSTER",
-		},
-		cli.StringFlag{
-			Name:   "namespace",
-			Usage:  "Kubernetes namespace to operate in",
-			EnvVar: "PLUGIN_NAMEPSACE",
+			Name:   "deploymentName",
+			Usage:  "name of the deploymant",
+			EnvVar: "PLUGIN_DEPLOYMENT_NAME",
 		},
 		cli.StringFlag{
 			Name:   "template",
-			Usage:  "optional - template for e.g. deployments",
+			Usage:  "template for deployment configuration",
 			EnvVar: "PLUGIN_TEMPLATE",
-			Value:  ".kube.yml",
-		},
-		cli.StringFlag{
-			Name:   "secret-template",
-			Usage:  "optional - template for the secret object",
-			EnvVar: "PLUGIN_SECRET_TEMPLATE",
-			Value:  ".kube.sec.yml",
+			Value:  ".gdm.yaml",
 		},
 		cli.StringFlag{
 			Name:   "vars",
 			Usage:  "variables to use in template",
 			EnvVar: "PLUGIN_VARS",
-		},
-		cli.StringFlag{
-			Name:   "secrets",
-			Usage:  "variables to use in secret_template. These are base64 encoded by the plugin.",
-			EnvVar: "PLUGIN_SECRETS",
-		},
-		cli.StringFlag{
-			Name:   "secrets-base64",
-			Usage:  "variables to use in secret_template. These should already be base64 encoded; the plugin will not do so.",
-			EnvVar: "PLUGIN_SECRETS_BASE64",
 		},
 		cli.StringFlag{
 			Name:   "drone-build-number",
@@ -176,41 +109,12 @@ func wrapMain() error {
 }
 
 func run(c *cli.Context) error {
-	vargs := GKE{}
-	vargs.DryRun = c.Bool("token")
-	vargs.Verbose = c.Bool("verbose")
-	vargs.Token = c.String("token")
-	vargs.GCloudCmd = c.String("gcloud-cmd")
-	vargs.KubectlCmd = c.String("kubectl-cmd")
-	vargs.Project = c.String("project")
-	vargs.Zone = c.String("zone")
-	vargs.Cluster = c.String("cluster")
-	vargs.Namespace = c.String("namespace")
-	vargs.Template = c.String("template")
-	vargs.SecretTemplate = c.String("secret-template")
-
+	vars := map[string]string
 	if c.String("vars") != "" {
 		if err := json.Unmarshal([]byte(c.String("vars")), &vargs.Vars); err != nil {
 			panic(err)
 		}
 	}
-	if c.String("secrets") != "" {
-		if err := json.Unmarshal([]byte(c.String("secrets")), &vargs.Secrets); err != nil {
-			panic(err)
-		}
-	}
-	if c.String("secrets-base64") != "" {
-		if err := json.Unmarshal([]byte(c.String("secrets-base64")), &vargs.SecretsBase64); err != nil {
-			panic(err)
-		}
-	}
-
-	build := BUILD{}
-	build.Number = c.String("drone-build-number")
-	build.Commit = c.String("drone-commit")
-	build.Branch = c.String("drone-branch")
-	build.Tag = c.String("drone-tag")
-
 	// Check required params.
 
 	if vargs.Token == "" {
