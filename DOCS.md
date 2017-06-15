@@ -16,8 +16,8 @@ The following parameters are used to configure this plugin:
 * *optional* `template` - Kubernetes template (like the [deployment object](http://kubernetes.io/docs/user-guide/deployments/)) (defaults to `.kube.yml`)
 * *optional* `secret_template` - Kubernetes template for the [secret object](http://kubernetes.io/docs/user-guide/secrets/) (defaults to `.kube.sec.yml`)
 * `vars` - variables to use in `template`
-* `secrets` - variables to use in `secret_template`. These are base64 encoded by the plugin.
-* `secrets_base64` - variables to use in `secret_template`. These should already be base64 encoded; the plugin will not do so.
+* `kube_secrets` - variables to use in `secret_template`. These are base64 encoded by the plugin.
+* `kube_secrets_base64` - variables to use in `secret_template`. These should already be base64 encoded; the plugin will not do so.
 
 Optional (useful for debugging):
 
@@ -74,10 +74,12 @@ deploy:
       image: gcr.io/my-gke-project/my-app:$$COMMIT
       app: my-app
       env: dev
-    secrets:
-      api_token: $$API_TOKEN
-    secrets_base64:
-      p12_cert: $$P12_CERT
+    kube_secrets:
+      api_token: ${API_TOKEN}
+    kube_secrets_base64:
+      p12_cert: ${P12_CERT}]
+      
+    secrets: [API_TOKEN, P12_CERT]
 
     when:
       event: push
