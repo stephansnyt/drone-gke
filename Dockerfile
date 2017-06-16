@@ -1,6 +1,6 @@
 FROM alpine:3.4
 
-ENV GOOGLE_CLOUD_SDK_VERSION=158.0.0
+ENV GOOGLE_CLOUD_SDK_VERSION=141.0.0
 
 RUN apk add --no-cache curl python
 
@@ -10,13 +10,10 @@ RUN tar -xzf google-cloud-sdk.tar.gz
 RUN rm google-cloud-sdk.tar.gz
 RUN ./google-cloud-sdk/install.sh --quiet
 
-# Install kubectl
-RUN ./google-cloud-sdk/bin/gcloud components install kubectl
-
 # Clean up
 RUN rm -rf ./google-cloud-sdk/.install
 
 # Add the Drone plugin
-ADD drone-gke /bin/
+ADD drone-gdm /bin/
 
-ENTRYPOINT ["/bin/drone-gke"]
+ENTRYPOINT ["/bin/drone-gdm"]

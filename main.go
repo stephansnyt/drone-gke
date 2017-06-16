@@ -51,7 +51,7 @@ func wrapMain() error {
 		cli.StringFlag{
 			Name:   "token",
 			Usage:  "service account's JSON credentials",
-			EnvVar: "PLUGIN_TOKEN",
+			EnvVar: "TOKEN",
 		},
 		cli.StringFlag{
 			Name:   "gcloud-cmd",
@@ -69,9 +69,9 @@ func wrapMain() error {
 			EnvVar: "PLUGIN_DEPLOYMENT_NAME",
 		},
 		cli.StringFlag{
-			Name:   "template",
+			Name:   "config-template",
 			Usage:  "template for deployment configuration",
-			EnvVar: "PLUGIN_TEMPLATE",
+			EnvVar: "PLUGIN_CONFIG_TEMPLATE",
 			Value:  ".gdm.yaml",
 		},
 		cli.StringFlag{
