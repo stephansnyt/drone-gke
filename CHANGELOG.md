@@ -1,4 +1,4 @@
-#v0.60 tag (tagging strategy TBD)
+# v0.60 tag (tagging strategy TBD)
 
 BREAKING CHANGES: The plugin has been updated to use drone v0.5+ style secrets, and this causes breaking changes with secrets across the board.
 
